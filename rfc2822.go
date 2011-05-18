@@ -44,13 +44,13 @@ func (err ParseError) String() string {
                        err.reason)
 }
 
-type header struct {
+type Header struct {
     key, value string
 }
 
 // A Message type encapsulates one RFC 2822 message.
 type Message struct {
-    headers map[string] []header
+    headers map[string] []Header
     body []string
 }
 
@@ -64,6 +64,18 @@ func (msg *Message) GetHeader(header string) (val string, err os.Error) {
     return val, Error{NOTFOUND, []string{"header", fmt.Sprintf("'%s'", header)}}
 }
 
+// GetHeaders returns one or more unstructured headers for a name, or an error
+// if the requested header does not exist.  When more than one header exists
+// for a name, they are returned in the order they appear in the message.
+func (msg *Message) GetHeaders(header string) (headers []Header, err os.Error) {
+    var good bool
+    if headers, good = msg.headers[strings.ToLower(header)]; good {
+        return
+    }
+    err = Error{NOTFOUND, []string{"header", fmt.Sprintf("'%s'", header)}}
+    return
+}
+
 // GetBody retrieves a message body if it exists, or an error if not.
 func (msg *Message) GetBody() (val string, err os.Error){
     if len(msg.body) < 1 {
@@ -75,7 +87,7 @@ func (msg *Message) GetBody() (val string, err os.Error){
 // ReadFile parses an RFC 2822 formatted input and returns a Message type.
 func Read(reader io.Reader) (msg *Message, err os.Error) {
     buff := bufio.NewReader(reader)
-    headers := make(map[string] []header)
+    headers := make(map[string] []Header)
 
     var (
       key, val, lowerKey string
@@ -110,19 +122,19 @@ func Read(reader io.Reader) (msg *Message, err os.Error) {
 
                 // Concatenate onto previous value
                 val = fmt.Sprintf("%s\n %s", val, strings.TrimSpace(line))
-                field := header{key, val}
+                field := Header{key, val}
                 headers[lowerKey][len(headers[lowerKey]) - 1] = field
             default:
                 if i := strings.Index(line, ":"); i > 0 {
                     key = strings.TrimSpace(line[0:i])
                     lowerKey = strings.ToLower(key)
                     val = strings.TrimSpace(line[i+1:])
-                    field := header{key, val}
+                    field := Header{key, val}
 
                     if _, has := headers[lowerKey]; has {
                         headers[lowerKey] = append(headers[lowerKey], field)
                     } else {
-                        headers[lowerKey] = []header{field}
+                        headers[lowerKey] = []Header{field}
                     }
                 } else {
                     return nil, ParseError{lineNo, "Cannot parse field"}
