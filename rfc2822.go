@@ -153,6 +153,7 @@ func ReadFile(fname string) (msg *Message, err os.Error) {
     if file, err = os.Open(fname); err != nil {
         return msg, err
     }
+    defer file.Close()
 
     return Read(file)
 }
