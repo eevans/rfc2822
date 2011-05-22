@@ -1,4 +1,3 @@
-
 package rfc2822
 
 import (
@@ -10,7 +9,7 @@ const (
     DATA = "testdata.txt"
 )
 
-var testHeaders = map[string] string {
+var testHeaders = map[string]string{
     "Header0": "Value0",
     "Header1": "Value1 Value1",
     "Header2": "Value2\n Value2\n Value2",
@@ -19,8 +18,8 @@ var testHeaders = map[string] string {
 
 func TestManyHeaders(t *testing.T) {
     var (
-        msg *Message
-        err os.Error
+        msg     *Message
+        err     os.Error
         headers []Header
     )
 
@@ -47,7 +46,7 @@ func TestParse(t *testing.T) {
     )
 
     if msg, err = ReadFile(DATA); err != nil {
-       t.Error(err) 
+        t.Error(err)
     }
 
     for key, testValue := range testHeaders {
